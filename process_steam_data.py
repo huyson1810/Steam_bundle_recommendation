@@ -14,6 +14,55 @@ def load_obj(name):
     with open('graph/' + name + '.pkl', 'rb') as f:
         return pickle.load(f)
 
+''' not in use '''
+def generate_game_dict(checkpoint=0):
+	FIn = snap.TFIn("graph/steam.graph")
+	G = snap.TUNGraph.Load(FIn)
+
+	
+
+	user_node_array = [] #88310
+	with open('graph/user_node.txt', 'r') as f:
+	    for line in f:
+	        user_node_array.append(int(line))
+
+	game_node_array = [] #10978
+	with open('graph/game_node.txt', 'r') as f:
+	    for line in f:
+	        game_node_array.append(int(line)) 
+
+	game_dict = {}
+
+	print("start game dict")
+
+	count = 0
+	for nid in user_node_array:
+		start = time.time()
+		if count<checkpoint:
+			count+=1
+			continue
+		node = G.GetNI(nid)
+		ki = node.GetDeg()
+		neid = []
+		for i in range(ki):
+			neid.append(node.GetNbrNId(i))
+		for i in range(len(neid)):
+			for j in range(i+1,len(neid)):
+				if (neid[i], neid[j]) in game_dict.keys():
+					game_dict[(neid[i], neid[j])]+=1
+				else:
+					game_dict[(neid[i], neid[j])]=1
+
+		count+=1
+		print(count, ki, len(game_dict.keys()), time.time()-start)
+		# if count%10==0:
+		# 	print(count, len(game_dict.keys()), "percentage: %f" % (count/float(len(user_node_array))))
+		# if count%100==0:
+		# 	print("time", len(game_dict.keys()), time.time()-start)
+	save_obj(game_dict, 'game_dict')
+
+
+''' bipartite graph '''
 def generate_steam_graph():
 	G = snap.TUNGraph.New()
 	user_node_array = []
@@ -101,7 +150,10 @@ def generate_steam_game_graph():
 	print("clustering coefficient: %f" % ClustCf)
 	return G_game
 
-def generate_steam_game_weight_graph():
+
+
+
+def generate_steam_game_weight_graph(limit):
 	FIn = snap.TFIn("graph/steam.graph")
 	G = snap.TUNGraph.Load(FIn)
 
@@ -125,6 +177,9 @@ def generate_steam_game_weight_graph():
 	for NId in user_node_array:
 		node = G.GetNI(NId)
 		ki = node.GetDeg()
+		if ki>limit:
+			count+=1
+			continue
 		neid = []
 		for i in range(ki):
 			neid.append(node.GetNbrNId(i))
@@ -141,11 +196,11 @@ def generate_steam_game_weight_graph():
 					G_game.AddIntAttrDatE(eid, 1 , attr)	
 		count+=1
 		if count%1000==0:
-			print("percentage: %f" % (count/(float(len(user_node_array)))))
+			print(count, "percentage: %f" % (count/(float(len(user_node_array)))))
 			FOut = snap.TFOut("graph/steam_weight_game_%d.graph"%count)
 			G_game.Save(FOut)
 			FOut.Flush()
-			
+
 	FOut = snap.TFOut("graph/steam_weight_game.graph")
 	G_game.Save(FOut)
 	FOut.Flush()
@@ -157,56 +212,7 @@ def generate_steam_game_weight_graph():
 	print("clustering coefficient: %f" % ClustCf)
 	return G_game
 
-def generate_game_dict(checkpoint=0):
-	FIn = snap.TFIn("graph/steam.graph")
-	G = snap.TUNGraph.Load(FIn)
 
-	
-
-	user_node_array = [] #88310
-	with open('graph/user_node.txt', 'r') as f:
-	    for line in f:
-	        user_node_array.append(int(line))
-
-	game_node_array = [] #10978
-	with open('graph/game_node.txt', 'r') as f:
-	    for line in f:
-	        game_node_array.append(int(line)) 
-
-	
-
-	game_dict = {}
-	# for i in range(len(game_node_array)):
-	# 	for j in range(i+1, len(game_node_array)):
-	# 		game_dict[(i,j)] = 0
-
-	print("start game dict")
-
-	count = 0
-	for nid in user_node_array:
-		start = time.time()
-		if count<checkpoint:
-			count+=1
-			continue
-		node = G.GetNI(nid)
-		ki = node.GetDeg()
-		neid = []
-		for i in range(ki):
-			neid.append(node.GetNbrNId(i))
-		for i in range(len(neid)):
-			for j in range(i+1,len(neid)):
-				if (neid[i], neid[j]) in game_dict.keys():
-					game_dict[(neid[i], neid[j])]+=1
-				else:
-					game_dict[(neid[i], neid[j])]=1
-
-		count+=1
-		print(count, ki, len(game_dict.keys()), time.time()-start)
-		# if count%10==0:
-		# 	print(count, len(game_dict.keys()), "percentage: %f" % (count/float(len(user_node_array))))
-		# if count%100==0:
-		# 	print("time", len(game_dict.keys()), time.time()-start)
-	save_obj(game_dict, 'game_dict')
 
 
 
@@ -216,4 +222,4 @@ def generate_game_dict(checkpoint=0):
 if __name__ == '__main__':
 	# generate_steam_graph()
 	# generate_steam_game_graph()
-	generate_steam_game_weight_graph()
+	generate_steam_game_weight_graph(100)

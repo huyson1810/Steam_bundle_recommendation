@@ -10,7 +10,7 @@ import csv
 
 def get_weighted_game_graph_status():
 	start = time.time()
-	FIn = snap.TFIn("graph/steam_weight_game_10000.graph")
+	FIn = snap.TFIn("graph/steam_weight_game_limit_100.graph")
 	G = snap.TNEANet.Load(FIn)
 
 	print("finished loading: ", time.time()-start)
@@ -28,7 +28,7 @@ def get_weighted_game_graph_status():
 
 	print("finished generating node id dict: ", time.time()-start)
 
-	with open('weighted_game.csv', mode='w') as f:
+	with open('csv/weighted_game_limit_100.csv', mode='w') as f:
 		writer = csv.writer(f, delimiter=',')
 		writer.writerow([str(len(node_dict.keys()))])
 		# count = 0
