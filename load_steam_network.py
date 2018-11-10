@@ -13,7 +13,7 @@ with open('graph/game_node.txt', 'r') as f:
     for line in f:
         game_node_array.append(int(line)) 
 
-FIn = snap.TFIn("steam.graph")
+FIn = snap.TFIn("graph/steam.graph")
 G = snap.TUNGraph.Load(FIn)
 
 def get_status(G):
@@ -22,18 +22,28 @@ def get_status(G):
 
 	UserDegDict = {}
 	GameDegDict = {}
+	deg_sum = 0
+	user_deg_sum = 0
+	game_deg_sum = 0
 	for node in G.Nodes():
 		deg = node.GetDeg()
+		deg_sum += deg
 		if node.GetId() in user_node_array:	
+			user_deg_sum += deg
 			if deg in UserDegDict.keys():
 				UserDegDict[deg] += 1
 			else:
 				UserDegDict[deg] = 1
 		else:
+			game_deg_sum += deg
 			if deg in GameDegDict.keys():
 				GameDegDict[deg] += 1
 			else:
 				GameDegDict[deg] = 1
+	print("sum of degrees %d" % deg_sum)
+	print("sum of degree of user nodes %d "% user_deg_sum)
+	print("sum of degree of game nodes %d " % game_deg_sum)
+	print("average", float(user_deg_sum/) )
 	Userlists = sorted(UserDegDict.items())
 	x_User, y_User = zip(*Userlists)
 	plt.loglog(x_User,y_User, color = 'y', label = 'User')
