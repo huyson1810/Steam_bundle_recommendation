@@ -5,6 +5,7 @@ import snap
 import sys
 import time
 import pickle
+import csv
 
 def save_obj(obj, name ):
     with open('graph/'+ name + '.pkl', 'wb') as f:
@@ -197,9 +198,11 @@ def generate_steam_game_weight_graph(limit):
 		count+=1
 		if count%1000==0:
 			print(count, "percentage: %f" % (count/(float(len(user_node_array)))))
+		if count%10000==0:
 			FOut = snap.TFOut("graph/steam_weight_game_%d.graph"%count)
 			G_game.Save(FOut)
 			FOut.Flush()
+			print("saved %d" % count)
 
 	FOut = snap.TFOut("graph/steam_weight_game.graph")
 	G_game.Save(FOut)
@@ -212,14 +215,103 @@ def generate_steam_game_weight_graph(limit):
 	print("clustering coefficient: %f" % ClustCf)
 	return G_game
 
+def generate_steam_edge_list():
+	FIn = snap.TFIn("graph/steam.graph")
+	G = snap.TUNGraph.Load(FIn)
+
+	G = snap.GetMxWcc(G)
+
+	user_node_array = [] #88310
+	with open('graph/user_node.txt', 'r') as f:
+	    for line in f:
+	        user_node_array.append(int(line))
+
+	game_node_array = [] #10978
+	with open('graph/game_node.txt', 'r') as f:
+	    for line in f:
+	        game_node_array.append(int(line)) 
+
+	with open('graph/steam_edge_list.csv', 'w') as f:
+		writer = csv.writer(f, delimiter=',')
+		for edge in G.Edges():
+			# eid = edge.GetId()
+			id1 = edge.GetSrcNId()
+			id2 = edge.GetDstNId()
+			if id1 in user_node_array:
+				row = [str(id1), 'g'+str(id2)]
+			else:
+				row = [str(id2), 'g'+str(id1)]
+			writer.writerow(row)
 
 
+def generate_steam_user_weight_graph(limit):
+	FIn = snap.TFIn("graph/steam.graph")
+	G = snap.TUNGraph.Load(FIn)
 
+	user_node_array = [] #88310
+	with open('graph/user_node.txt', 'r') as f:
+	    for line in f:
+	        user_node_array.append(int(line))
 
+	game_node_array = [] #10978
+	with open('graph/game_node.txt', 'r') as f:
+	    for line in f:
+	        game_node_array.append(int(line)) 
+
+	G_user = snap.TNEANet.New()
+	attr = 'weight'
+	# add nodes
+	for uid in user_node_array:
+		G_user.AddNode(uid)
+	# add edges
+	count=0
+	for NId in game_node_array:
+		node = G.GetNI(NId)
+		ki = node.GetDeg()
+		if ki>limit:
+			count+=1
+			continue
+		neid = []
+		for i in range(ki):
+			neid.append(node.GetNbrNId(i))
+		neid = sorted(neid)
+		for i in range(len(neid)):
+			for j in range(i+1,len(neid)):
+				if G_user.IsEdge(neid[i], neid[j]):
+					eid = G_user.GetEI(neid[i], neid[j]).GetId()
+					value = G_user.GetIntAttrDatE(eid, attr)
+					value+=1
+					G_user.AddIntAttrDatE(eid, value, attr)
+				else:
+					eid = G_user.AddEdge(neid[i], neid[j])
+					G_user.AddIntAttrDatE(eid, 1 , attr)	
+		count+=1
+		if count%1000==0:
+			print(count, "percentage: %f" % (count/(float(len(game_node_array)))))
+		if count%10000==0:
+			FOut = snap.TFOut("graph/steam_weight_user_%d.graph"%count)
+			G_user.Save(FOut)
+			FOut.Flush()
+			print("saved %d" % count)
+
+	FOut = snap.TFOut("graph/steam_weight_user.graph")
+	G_user.Save(FOut)
+	FOut.Flush()
+	print("done saving graph")
+
+	FIn = snap.TFIn("graph/steam_weight_user.graph")
+	G_user = snap.TNEANet.Load(FIn)
+	ClustCf = snap.GetClustCf(G_user, 1000)
+	print("clustering coefficient: %f" % ClustCf)
+	return G_user
 
 
 
 if __name__ == '__main__':
 	# generate_steam_graph()
 	# generate_steam_game_graph()
-	generate_steam_game_weight_graph(100)
+	# generate_steam_game_weight_graph(1000)
+	generate_steam_user_weight_graph(1000)
+
+	# generate_steam_edge_list()
+	# generate_steam_edge_list()

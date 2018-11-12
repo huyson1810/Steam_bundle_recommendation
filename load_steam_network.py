@@ -25,25 +25,40 @@ def get_status(G):
 	deg_sum = 0
 	user_deg_sum = 0
 	game_deg_sum = 0
+	count_user = 0
+	count_game = 0
+	min_deg_user = 10000
+	min_deg_game = 10000
 	for node in G.Nodes():
 		deg = node.GetDeg()
 		deg_sum += deg
+		
 		if node.GetId() in user_node_array:	
+			min_deg_user = min(min_deg_user, deg)
+			if deg<1:
+				count_user+=1
 			user_deg_sum += deg
 			if deg in UserDegDict.keys():
 				UserDegDict[deg] += 1
 			else:
 				UserDegDict[deg] = 1
 		else:
+			min_deg_game = min(min_deg_game, deg)
+			if deg<1:
+				count_game+=1
 			game_deg_sum += deg
 			if deg in GameDegDict.keys():
 				GameDegDict[deg] += 1
 			else:
 				GameDegDict[deg] = 1
+	print("disconnected user nodes %d" % count_user)
+	print("disconnected game nodes %d" % count_game)
+	print("min degree of user %d" % min_deg_user)
+	print("min degree of game %d " % min_deg_game)
 	print("sum of degrees %d" % deg_sum)
 	print("sum of degree of user nodes %d "% user_deg_sum)
 	print("sum of degree of game nodes %d " % game_deg_sum)
-	print("average", float(user_deg_sum/) )
+	print("average", float(user_deg_sum/float(len(user_node_array))) )
 	Userlists = sorted(UserDegDict.items())
 	x_User, y_User = zip(*Userlists)
 	plt.loglog(x_User,y_User, color = 'y', label = 'User')
