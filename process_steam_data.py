@@ -7,6 +7,8 @@ import time
 import pickle
 import csv
 
+# >600000
+
 def save_obj(obj, name ):
     with open('graph/'+ name + '.pkl', 'wb') as f:
         pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
@@ -152,7 +154,7 @@ def generate_steam_game_graph():
 	return G_game
 
 
-
+''' generate steam game weight graph previous'''
 
 def generate_steam_game_weight_graph(limit):
 	FIn = snap.TFIn("graph/steam.graph")
@@ -215,8 +217,88 @@ def generate_steam_game_weight_graph(limit):
 	print("clustering coefficient: %f" % ClustCf)
 	return G_game
 
+def save_edge_list(dct, name, count):
+	with open('csv/new_steam_weight_{}_{}.csv'.format(name, str(count)), 'w') as f:
+		writer = csv.writer(f, delimiter=',')
+		for (id1, dct2) in dct.items():
+			for (id2, value) in dct2.items():
+				row = [str(id1), str(id2), str(value)]
+				writer.writerow(row)
+
+''' generate steam game user weight graph new'''
+def generate_steam_game_user_weight_graph():
+	FIn = snap.TFIn("graph/steam_new.graph")
+	G = snap.TUNGraph.Load(FIn)
+
+	# G_game = snap.PUNGraph.New()
+	# G_user = snap.PUNGraph.New()
+	game_dct = {}
+	user_dct = {}
+	# add edges
+	count=0
+	start = time.time()
+	for node in G.Nodes():
+		NId = node.GetId()
+		if NId < 600000:			
+			ki = node.GetDeg()
+			neid = []
+			for i in range(ki):
+				neid.append(node.GetNbrNId(i))
+			neid = sorted(neid)
+			for i in range(len(neid)):
+				for j in range(i+1,len(neid)):
+					if neid[i] in user_dct.keys():
+						if neid[j] in user_dct[neid[i]].keys():
+							user_dct[neid[i]][neid[j]]+=1
+						else:
+							user_dct[neid[i]][neid[j]]=1
+					else:
+						user_dct[neid[i]]={}
+						user_dct[neid[i]][neid[j]]=1
+			# print(user_dct)	
+		else:
+			ki = node.GetDeg()
+			neid = []
+			for i in range(ki):
+				neid.append(node.GetNbrNId(i))
+			neid = sorted(neid)
+			for i in range(len(neid)):
+				for j in range(i+1,len(neid)):
+					if neid[i] in game_dct.keys():
+						if neid[j] in game_dct[neid[i]].keys():
+							game_dct[neid[i]][neid[j]]+=1
+						else:
+							game_dct[neid[i]][neid[j]]=1
+					else:
+						game_dct[neid[i]] = {}
+						game_dct[neid[i]][neid[j]]=1
+			# print(game_dct)
+		count+=1
+		if count%100==0:
+			print(count, "percentage: %f" % (count/(float(G.GetNodes()))), time.time()-start)
+		if count%1000==0 or count==100:
+			save_edge_list(game_dct, 'game', count)
+			save_edge_list(user_dct, 'user', count)
+			print("saved %d" % count)
+
+
+	# FOut = snap.TFOut("graph/new_steam_weight_game.graph")
+	# G_game.Save(FOut)
+	# FOut.Flush()
+	# FOut = snap.TFOut("graph/new_steam_weight_user.graph")
+	# G_user.Save(FOut)
+	# FOut.Flush()
+	# print("done saving graph")
+	# FIn = snap.TFIn("graph/new_steam_weight_game.graph")
+	# G_game = snap.PUNGraph.Load(FIn)
+	# ClustCf = snap.GetClustCf(G_game, 1000)
+	# print("clustering coefficient: %f" % ClustCf)
+	save_edge_list(game_dct, 'game', 0)
+	save_edge_list(user_dct, 'user', 0)
+	return game_dct, user_dct
+
 def generate_steam_edge_list():
-	FIn = snap.TFIn("graph/steam.graph")
+	FIn = snap.TFIn("graph/steam_new.graph")
 	G = snap.TUNGraph.Load(FIn)
 
 	G = snap.GetMxWcc(G)
@@ -231,7 +313,7 @@ def generate_steam_edge_list():
 	    for line in f:
 	        game_node_array.append(int(line)) 
 
-	with open('graph/steam_edge_list.csv', 'w') as f:
+	with open('graph/steam_new_edge_list.csv', 'w') as f:
 		writer = csv.writer(f, delimiter=',')
 		for edge in G.Edges():
 			# eid = edge.GetId()
@@ -311,7 +393,6 @@ if __name__ == '__main__':
 	# generate_steam_graph()
 	# generate_steam_game_graph()
 	# generate_steam_game_weight_graph(1000)
-	generate_steam_user_weight_graph(1000)
-
+	# generate_steam_user_weight_graph(1000)
 	# generate_steam_edge_list()
-	# generate_steam_edge_list()
+	generate_steam_game_user_weight_graph()
