@@ -227,7 +227,7 @@ def save_edge_list(dct, name, count):
 
 ''' generate steam game user weight graph new'''
 def generate_steam_game_user_weight_graph():
-	FIn = snap.TFIn("graph/steam_new.graph")
+	FIn = snap.TFIn("../graph/steam_new.graph")
 	G = snap.TUNGraph.Load(FIn)
 
 	# G_game = snap.PUNGraph.New()
@@ -247,13 +247,14 @@ def generate_steam_game_user_weight_graph():
 			neid = sorted(neid)
 			for i in range(len(neid)):
 				for j in range(i+1,len(neid)):
-					if neid[i] in user_dct.keys():
-						if neid[j] in user_dct[neid[i]].keys():
-							user_dct[neid[i]][neid[j]]+=1
+					if neid[i] in user_dct:
+						temp_dic = user_dct[neid[i]]
+						if neid[j] in temp_dic:
+							temp_dic[neid[j]]+=1
 						else:
-							user_dct[neid[i]][neid[j]]=1
+							temp_dic[neid[j]]=1
 					else:
-						user_dct[neid[i]]={}
+						user_dct[neid[i]] = {}
 						user_dct[neid[i]][neid[j]]=1
 			# print(user_dct)	
 		else:
@@ -264,22 +265,23 @@ def generate_steam_game_user_weight_graph():
 			neid = sorted(neid)
 			for i in range(len(neid)):
 				for j in range(i+1,len(neid)):
-					if neid[i] in game_dct.keys():
-						if neid[j] in game_dct[neid[i]].keys():
-							game_dct[neid[i]][neid[j]]+=1
+					if neid[i] in game_dct:
+						temp_dic = game_dct[neid[i]]
+						if neid[j] in temp_dic:
+							temp_dic[neid[j]]+=1
 						else:
-							game_dct[neid[i]][neid[j]]=1
+							temp_dic[neid[j]]=1
 					else:
 						game_dct[neid[i]] = {}
 						game_dct[neid[i]][neid[j]]=1
 			# print(game_dct)
 		count+=1
-		if count%100==0:
+		if count%1000==0:
 			print(count, "percentage: %f" % (count/(float(G.GetNodes()))), time.time()-start)
-		if count%1000==0 or count==100:
-			save_edge_list(game_dct, 'game', count)
-			save_edge_list(user_dct, 'user', count)
-			print("saved %d" % count)
+		# if count%1000==0 or count==100:
+		# 	save_edge_list(game_dct, 'game', count)
+		# 	# save_edge_list(user_dct, 'user', count)
+		# 	print("saved %d" % count)
 
 
 	# FOut = snap.TFOut("graph/new_steam_weight_game.graph")
