@@ -1,5 +1,8 @@
+.DS_Store
 data/
 graph/
 archive/
 csv/
 images/
+emd/
+datasets/
