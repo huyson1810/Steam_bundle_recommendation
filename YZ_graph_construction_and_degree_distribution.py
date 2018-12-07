@@ -119,6 +119,8 @@ def degreeDistribution():
 	Go = snap.TUNGraph.Load(FIn)
 	FIn = snap.TFIn("../graph/steam_user100_game1000.graph")
 	Gn = snap.TUNGraph.Load(FIn)
+	print Go.GetNodes(), Go.GetEdges()
+	print Gn.GetNodes(), Gn.GetEdges()
 
 	d1, user1, game1 = getDeg(Go)
 	d2, user2, game2 = getDeg(Gn)
@@ -162,6 +164,7 @@ def constructGraph(dic):
 		for w in val.keys():
 			if not G.IsNode(w): G.AddNode(w)
 			G.AddEdge(v, w)
+	print snap.GetClustCf(G, -1)
 	return G
 
 '''
@@ -225,6 +228,6 @@ def generate_steam_game_user_weight_graph():
 	return game_dct, user_dct
 
 if __name__ == '__main__':
-	construct()
+	# construct()
 	degreeDistribution()
 	generate_steam_game_user_weight_graph()
