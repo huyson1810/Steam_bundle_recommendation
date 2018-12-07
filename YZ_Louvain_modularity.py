@@ -1,4 +1,7 @@
-totalModGain = 0
+'''
+Implementation of Louvain algorithm for community detection 
+by maximizing modularity gain greedly. 
+'''
 
 class Community:
 
@@ -96,24 +99,48 @@ class Node:
 
 class Graph:
 
+	'''
+	Construct undirected weighted graph from edge list:
+	node id2, node id2, edge weight
+	'''
 	def __init__(self, path):
+		self.Id_to_node = []
+		self.node_to_Id = {}
+		self.index = 0
 		self.IdNodeMap = []
 		self.nodes = []
 		self.communities = []
 		self.m = 0.0
 		file = open(path, 'r');
 		V = int(file.readline())
+		print V
 		for i in range(V):
 			node = Node(i, 0)
 			self.IdNodeMap.append([i])
 			self.nodes.append(node)
 			self.communities.append(Community(node))
-
+		i = 0
 		for line in file:
 			v, w, l = (int(s) for s in line.split(','))
+
 			self.m += l
+			v = self.getId(v)
+			w = self.getId(w)
 			self.nodes[v].addNeighbor(self.nodes[w], l, self.communities[v])
 			self.nodes[w].addNeighbor(self.nodes[v], l, self.communities[w])
+			i += 1
+			if i % 1000000 == 0:
+				print i
+		print "graph done"
+
+	def getId(self, v):
+		if v in self.node_to_Id:
+			return self.node_to_Id[v]
+		else:
+			self.node_to_Id[v] = self.index
+			self.Id_to_node.append(v)
+			self.index += 1
+			return self.index - 1
 
 	def getNode(self, Id):
 		return self.nodes[Id]
@@ -125,7 +152,10 @@ class Graph:
 			if change:
 				while self.modularityOpt(): continue
 				self.communityAgg()
-			
+
+	'''
+	Phase 1: Modularity is optimized by allowing only local changes of communities
+	'''
 	def modularityOpt(self):
 		global totalModGain
 		change = False
@@ -149,10 +179,14 @@ class Graph:
 				change = True
 				self.communities[maxcId].addNode(node)
 				self.communities[cId].removeNode(node)
-
+                print totalModGain
 		return change
 
+	'''
+	Phase 2: The identified communities are aggregated in order to build a new network of communities
+	'''
 	def communityAgg(self):
+		print "start aggregate"
 		newNodes = []
 		newCommunities = []
 		newIdNodeMap = []
@@ -186,12 +220,16 @@ class Graph:
 		self.communities = newCommunities
 		self.IdNodeMap = newIdNodeMap
 		print "Communities after one iteration:"
-		print newIdNodeMap
-		print "Self-edge weight and degree of supernode:"
-		for i in range(len(self.nodes)):
-			print self.nodes[i].getSelfWegiht(), self.nodes[i].getOutWegiht()
+		for i in range(len(newIdNodeMap)):
+			if newIdNodeMap[i][0] >= self.index: continue
+			print [self.Id_to_node[j] for j in newIdNodeMap[i]]
+	#	print "Self-edge weight and degree of supernode:"
+	#	for i in range(len(self.nodes)):
+	#		print self.nodes[i].getSelfWegiht(), self.nodes[i].getOutWegiht()
 
-g = Graph("graph2.csv")
 
-g.louvain()
-print "Total modularity gain is", totalModGain
+if __name__ == '__main__':
+	totalModGain = 0
+	g = Graph("../graph/graph1.csv")
+	g.louvain()
+	print "Total modularity gain is", totalModGain

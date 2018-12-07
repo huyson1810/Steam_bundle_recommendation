@@ -1,3 +1,6 @@
+'''
+Map the user node id from community graph to the id that are used in bundle recommendation.
+'''
 import ast
 import pickle
 import csv
@@ -17,7 +20,7 @@ def constructMap():
 	dic = {}
 	user_id_lookup = pickle.load(open('../data/processed_data/user_id_lookup','rb'))
 	for user_key, user_name in user_id_lookup.items():
-		dic[user_name[1:]] = user_key
+		dic[user_name] = user_key
 	with open('user_name_to_user_key', 'wb') as filedump:
 	    pickle.dump(dic, filedump, protocol=pickle.HIGHEST_PROTOCOL)
 	filedump.close()
@@ -26,12 +29,13 @@ def constructMap():
 def getCommunities():
 	communities = []
 	with open("../data/louvain_user_nocutoff_weighted") as f:
-		community = []
 		for line in f:
+			community = []
 			vec = line.split(" ")
 			for i in vec:
 				community.append(int(i))
-		communities.append(community)
+			communities.append(community)
+	print len(communities)
 	return communities
 
 def getCommunityUsers(communities, original_user_ids, dic):
@@ -48,10 +52,8 @@ def getCommunityUsers(communities, original_user_ids, dic):
 		writer = csv.writer(f, delimiter=',')
 		for l in C:
 			writer.writerow(l)
-	    
 
-original_user_ids, dic = constructMap()
-print original_user_ids
-print dic
-communities = getCommunities()
-getCommunityUsers(communities, original_user_ids, dic)
+if __name__ == '__main__':
+	original_user_ids, dic = constructMap()
+	communities = getCommunities()
+	getCommunityUsers(communities, original_user_ids, dic)
