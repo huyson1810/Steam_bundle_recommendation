@@ -5,11 +5,16 @@ from ggplot import *
 from sklearn.manifold import TSNE
 import time
 from sklearn.cluster import KMeans
+from ggplot import theme_bw
 
 
 
-emb_file = 'emd/steam_new_p1_q1.emd'
+# emb_file = 'emd/steam_new_p1_q1.emd'
+# emb_file = 'emd/steam_new_p1_q0.5.emd'
+emb_file = 'emd/steam_new_p1_q2.emd'
+
 community_file = 'emd/louvain_game_nocutoff_weighted.txt'
+# community_file = 'emd/louvain_user_nocutoff_weighted.txt'
 
 
 def read_emd():
@@ -69,7 +74,7 @@ def get_plot(X, ids, cluster_dct):
 
 	df = pd.DataFrame(X,columns=feat_cols)
 
-	n_sne = 5000
+	n_sne = 480000
 
 	rndperm = ids
 	# print(len(rndperm), rndperm)
@@ -104,8 +109,11 @@ def get_plot(X, ids, cluster_dct):
 
 
 	chart = ggplot( df_tsne, aes(x='x-tsne', y='y-tsne', color='label') ) \
-	        + geom_point(size=20,alpha=0.8) \
-	        + ggtitle("tSNE dimensions of steam graph embeddings")
+	        + geom_point(size=5,alpha=0.5) \
+			+ theme_bw()\
+			+ ggtitle("tSNE dimensions of steam graph embeddings")
+
+	# ggsave()
 	print(chart)
 
 def main():
@@ -118,7 +126,7 @@ def main():
 	print(n_game, n_user, k)
 	
 	get_plot(X_game, game_ids, cluster_dct)
-
+	# get_plot(X_user, user_ids, cluster_dct)
 
 	
 
