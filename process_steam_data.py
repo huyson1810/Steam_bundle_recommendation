@@ -227,7 +227,7 @@ def save_edge_list(dct, name, count):
 
 ''' generate steam game user weight graph new'''
 def generate_steam_game_user_weight_graph():
-	FIn = snap.TFIn("../graph/steam_new.graph")
+	FIn = snap.TFIn("../graph/steam_user100_game1000.graph")
 	G = snap.TUNGraph.Load(FIn)
 
 	# G_game = snap.PUNGraph.New()
@@ -275,9 +275,9 @@ def generate_steam_game_user_weight_graph():
 						game_dct[neid[i]] = {}
 						game_dct[neid[i]][neid[j]]=1
 			# print(game_dct)
-		count+=1
-		if count%1000==0:
-			print(count, "percentage: %f" % (count/(float(G.GetNodes()))), time.time()-start)
+		# count+=1
+		# if count%1000==0:
+		# 	print(count, "percentage: %f" % (count/(float(G.GetNodes()))), time.time()-start)
 		# if count%1000==0 or count==100:
 		# 	save_edge_list(game_dct, 'game', count)
 		# 	# save_edge_list(user_dct, 'user', count)
@@ -295,8 +295,9 @@ def generate_steam_game_user_weight_graph():
 	# G_game = snap.PUNGraph.Load(FIn)
 	# ClustCf = snap.GetClustCf(G_game, 1000)
 	# print("clustering coefficient: %f" % ClustCf)
-	save_edge_list(game_dct, 'game', 0)
-	save_edge_list(user_dct, 'user', 0)
+	print len(game_dct), len(user_dct)
+	# save_edge_list(game_dct, 'game', 0)
+	# save_edge_list(user_dct, 'user', 0)
 	return game_dct, user_dct
 
 def generate_steam_edge_list():

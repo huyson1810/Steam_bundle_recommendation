@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from ggplot import *
 from sklearn.manifold import TSNE
+from sklearn.decomposition import PCA
 import time
 from sklearn.cluster import KMeans
 from ggplot import theme_bw
