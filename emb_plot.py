@@ -10,13 +10,13 @@ from ggplot import theme_bw
 
 
 
-# emb_file = 'emd/steam_new_p1_q1.emd'
+emb_file = 'emd/steam_new_p1_q1.emd'
 # emb_file = 'emd/steam_new_p1_q0.5.emd'
-emb_file = 'emd/steam_new_p1_q2.emd'
+# emb_file = 'emd/steam_new_p1_q2.emd'
 
-community_file = 'emd/louvain_game_nocutoff_weighted.txt'
+# community_file = 'emd/louvain_game_nocutoff_weighted.txt'
 # community_file = 'emd/louvain_user_nocutoff_weighted.txt'
-
+community_file = 'emd/kmeans_louvain_user.txt'
 
 def read_emd():
 	with open(emb_file, 'r') as f:
@@ -51,10 +51,11 @@ def read_community():
 		dct = {}
 		for row in f:
 			row = row.translate(None, '[]')
-			# cluster = [float(x) for x in row.split(',')]
 			for x in row.split(','):
+				# print(x)
 				dct[int(x)] = count
 			count+=1
+	# print(dct)
 	return dct
 		
 
@@ -126,8 +127,8 @@ def main():
 	(n_user, k) = X_user.shape
 	print(n_game, n_user, k)
 	
-	get_plot(X_game, game_ids, cluster_dct)
-	# get_plot(X_user, user_ids, cluster_dct)
+	# get_plot(X_game, game_ids, cluster_dct)
+	get_plot(X_user, user_ids, cluster_dct)
 
 	
 

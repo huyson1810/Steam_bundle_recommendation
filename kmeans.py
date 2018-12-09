@@ -67,16 +67,16 @@ def get_emb_mtx(lst, X, ids):
 def main():
     X_game, X_user, game_ids, user_ids = read_emd()
     dct_node, dct_cluster = read_community()
-    # print(dct_cluster.keys())
-    # x = [key for key in dct_cluster.keys() if len(dct_cluster[key])>800]
-    for key in dct_cluster.keys():
-        print(len(dct_cluster[key]))
+
     cluster_lst = []
+    cluster_result = []
     for key in dct_cluster.keys():
-        nodes = dct_cluster[key]
+        nodes = np.array(dct_cluster[key])
         max_sil = 0
         opt_k = 0
-        if len(nodes)>1000:
+        if len(nodes)<1000:
+            cluster_result.append(nodes)
+        else:
             print("cluster id %d"%key)
             X_cluster = get_emb_mtx(nodes, X_user, user_ids)
             scores = []
@@ -84,13 +84,45 @@ def main():
             for k in ks:
 
                 kmeans = KMeans(n_clusters=k, random_state=0).fit(X_cluster)
-                # inertia = kmeans.inertia_
                 cluster_labels = kmeans.labels_
                 sil = silhouette_score(X_cluster, cluster_labels)
                 scores.append(sil)
                 if sil>max_sil:
                     max_sil = sil
                     opt_k = k
+
+            cluster_lst.append((len(nodes), opt_k))
+            print("optimal k", key, opt_k, max_sil)
+            plt.plot(ks, scores, marker='s', label='cluster %d' %key)
+            plt.plot(opt_k, max_sil, marker='o', markersize=3, color="red")
+            kmeans_opt = KMeans(n_clusters=opt_k, random_state=0).fit(X_cluster)
+            cluster_labels = kmeans.labels_
+            opt_cluster_dct = {}
+            for i in range(opt_k):
+                ids = [j for j,x in enumerate(cluster_labels) if x == i]
+                cluster_result.append(nodes[ids])
+                print(i, len(nodes[ids]),  str(list(item)))
+    with open('emd/kmeans_louvain_user', 'w') as f:
+        for item in cluster_result:
+            f.write("%s\n" % str(list(item)))
+
+
+    plt.title("k clusters for kmeans")
+    plt.xlabel('number of clusters')
+    plt.ylabel('silhouette score')
+    plt.legend()
+    plt.show()
+
+    cluster_lst.sort(key=lambda x: x[0])
+    plt.plot([x[0] for x in cluster_lst], [x[1] for x in cluster_lst])
+    plt.title("optimal k value vs number of nodes")
+    plt.xlabel('number of nodes')
+    plt.ylabel('optimal k value')
+    plt.show()
+
+
+            
+
                 # sample_silhouette_values = silhouette_samples(X_cluster, cluster_labels)
                 # fig, (ax1, ax2) = plt.subplots(1, 2)
                 # fig.set_size_inches(18, 7)
@@ -149,28 +181,6 @@ def main():
                 #               "with n_clusters = %d" % k),
                 #              fontsize=14, fontweight='bold')
                 # plt.show()
-            cluster_lst.append((len(nodes), opt_k))
-            print("optimal k", key, opt_k, max_sil)
-            plt.plot(ks, scores, marker='s', label='cluster %d' %key)
-            plt.plot(opt_k, max_sil, marker='o', markersize=3, color="red")
-    plt.title("k clusters for kmeans")
-    plt.xlabel('number of clusters')
-    plt.ylabel('silhouette score')
-    plt.legend()
-    plt.show()
-    cluster_lst.sort(key=lambda x: x[0])
-    plt.plot([x[0] for x in cluster_lst], [x[1] for x in cluster_lst])
-    plt.title("optimal k value vs number of nodes")
-    plt.xlabel('number of nodes')
-    plt.ylabel('optimal k value')
-    plt.show()
-
-        # print(k , sil_sum)
-        # plt.legend()
-        # plt.plot(x, inertias, label='k=%d, sum=%f'%(k,sil_sum))
-            
-
-
     # for k in range(20):
 
 
